@@ -1,0 +1,114 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Structure for DSU
+typedef struct {
+    int* parent;
+    int* rank;
+    int n;
+    int components;
+} DisjointSet;
+
+// Initialize DSU
+DisjointSet* createDSU(int n) {
+    DisjointSet* dsu = (DisjointSet*)malloc(sizeof(DisjointSet));
+    dsu->parent = (int*)malloc(n * sizeof(int));
+    dsu->rank = (int*)malloc(n * sizeof(int));
+    dsu->n = n;
+    dsu->components = n;
+    for (int i = 0; i < n; i++) {
+        dsu->parent[i] = i;
+        dsu->rank[i] = 0;
+    }
+    return dsu;
+}
+
+// Find with path compression
+int find(DisjointSet* dsu, int x) {
+    if (dsu->parent[x] != x) {
+        dsu->parent[x] = find(dsu, dsu->parent[x]);
+    }
+    return dsu->parent[x];
+}
+
+// Union by rank
+void unionSets(DisjointSet* dsu, int x, int y) {
+    int px = find(dsu, x);
+    int py = find(dsu, y);
+    if (px != py) {
+        if (dsu->rank[px] < dsu->rank[py]) {
+            dsu->parent[px] = py;
+        } else if (dsu->rank[px] > dsu->rank[py]) {
+            dsu->parent[py] = px;
+        } else {
+            dsu->parent[py] = px;
+            dsu->rank[px]++;
+        }
+        dsu->components--;
+    }
+}
+
+// Free DSU
+void freeDSU(DisjointSet* dsu) {
+    free(dsu->parent);
+    free(dsu->rank);
+    free(dsu);
+}
+
+// Function to count components after keeping edges with time > t
+int countComponents(int n, int** edges, int edgesSize, long long t) {
+    DisjointSet* dsu = createDSU(n);
+    for (int i = 0; i < edgesSize; i++) {
+        if ((long long)edges[i][2] > t) {
+            unionSets(dsu, edges[i][0], edges[i][1]);
+        }
+    }
+    int result = dsu->components;
+    freeDSU(dsu);
+    return result;
+}
+
+// Comparison function for qsort
+int compare(const void* a, const void* b) {
+    long long x = *(long long*)a;
+    long long y = *(long long*)b;
+    return (x < y) ? -1 : (x > y) ? 1 : 0;
+}
+
+// Main function to find minimum time
+long long minTime(int n, int** edges, int edgesSize, int* edgesColSize, int k) {
+    // If no edges and k <= n, return 0
+    if (edgesSize == 0) {
+        return (k <= n) ? 0 : -1;
+    }
+
+    // Collect unique times
+    long long* times = (long long*)malloc(edgesSize * sizeof(long long));
+    for (int i = 0; i < edgesSize; i++) {
+        times[i] = edges[i][2];
+    }
+    qsort(times, edgesSize, sizeof(long long), compare);
+    int uniqueTimesSize = 0;
+    for (int i = 0; i < edgesSize; i++) {
+        if (i == 0 || times[i] != times[i-1]) {
+            times[uniqueTimesSize++] = times[i];
+        }
+    }
+
+    // Binary search on time
+    long long left = 0, right = times[uniqueTimesSize - 1];
+    long long result = -1;
+    while (left <= right) {
+        long long mid = left + (right - left) / 2;
+        int components = countComponents(n, edges, edgesSize, mid);
+        if (components >= k) {
+            result = mid;
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    free(times);
+    return result;
+}
