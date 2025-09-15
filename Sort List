@@ -1,0 +1,77 @@
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     struct ListNode *next;
+ * };
+ */
+
+// Helper function to split the list into two parts, each of size `size`.
+// It returns the pointer to the start of the next chunk after the split.
+struct ListNode* split(struct ListNode* head, int size) {
+    for (int i = 1; head && i < size; i++) {
+        head = head->next;
+    }
+    if (!head) return NULL;
+
+    struct ListNode* second = head->next;
+    head->next = NULL;
+    return second;
+}
+
+// Helper function to merge two sorted linked lists
+// It returns the head and sets the tail of the merged list.
+struct ListNode* merge(struct ListNode* l1, struct ListNode* l2, struct ListNode** tail) {
+    struct ListNode dummy;
+    struct ListNode* p = &dummy;
+
+    while (l1 && l2) {
+        if (l1->val < l2->val) {
+            p->next = l1;
+            l1 = l1->next;
+        } else {
+            p->next = l2;
+            l2 = l2->next;
+        }
+        p = p->next;
+    }
+
+    p->next = l1 ? l1 : l2;
+
+    while (p->next) {
+        p = p->next;
+    }
+    *tail = p;
+    return dummy.next;
+}
+
+struct ListNode* sortList(struct ListNode* head) {
+    if (!head || !head->next) return head;
+
+    // Get the length of the list
+    int length = 0;
+    struct ListNode* p = head;
+    while (p) {
+        length++;
+        p = p->next;
+    }
+
+    struct ListNode dummy;
+    dummy.next = head;
+
+    // Bottom-up merge sort
+    for (int size = 1; size < length; size *= 2) {
+        struct ListNode* cur = dummy.next;
+        struct ListNode* tail = &dummy;
+
+        while (cur) {
+            struct ListNode* left = cur;
+            struct ListNode* right = split(left, size);
+            cur = split(right, size);
+
+            tail->next = merge(left, right, &tail);
+        }
+    }
+
+    return dummy.next;
+}
