@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_DAYS 100005
+
+// Comparator for qsort: sort events by start day
+int compare(const void* a, const void* b) {
+    int* eventA = *(int**)a;
+    int* eventB = *(int**)b;
+    return eventA[0] - eventB[0];
+}
+
+// Min Heap functions
+void heapify(int heap[], int n, int i) {
+    int smallest = i;
+    int left = 2*i + 1;
+    int right = 2*i + 2;
+
+    if (left < n && heap[left] < heap[smallest])
+        smallest = left;
+    if (right < n && heap[right] < heap[smallest])
+        smallest = right;
+
+    if (smallest != i) {
+        int temp = heap[i];
+        heap[i] = heap[smallest];
+        heap[smallest] = temp;
+        heapify(heap, n, smallest);
+    }
+}
+
+void insertHeap(int heap[], int* size, int val) {
+    int i = (*size)++;
+    heap[i] = val;
+    while (i != 0 && heap[(i-1)/2] > heap[i]) {
+        int temp = heap[i];
+        heap[i] = heap[(i-1)/2];
+        heap[(i-1)/2] = temp;
+        i = (i-1)/2;
+    }
+}
+
+int removeMin(int heap[], int* size) {
+    if (*size == 0) return -1;
+    int root = heap[0];
+    heap[0] = heap[--(*size)];
+    heapify(heap, *size, 0);
+    return root;
+}
+
+int maxEvents(int** events, int eventsSize, int* eventsColSize) {
+    qsort(events, eventsSize, sizeof(int*), compare);
+
+    int minHeap[MAX_DAYS];
+    int heapSize = 0;
+    int res = 0, day = 0, i = 0;
+
+    while (i < eventsSize || heapSize > 0) {
+        if (heapSize == 0 && i < eventsSize)
+            day = events[i][0];
+
+        while (i < eventsSize && events[i][0] <= day) {
+            insertHeap(minHeap, &heapSize, events[i][1]);
+            i++;
+        }
+
+        while (heapSize > 0 && minHeap[0] < day)
+            removeMin(minHeap, &heapSize);
+
+        if (heapSize > 0) {
+            removeMin(minHeap, &heapSize);
+            res++;
+            day++;
+        } else {
+            day++;
+        }
+    }
+
+    return res;
+}
