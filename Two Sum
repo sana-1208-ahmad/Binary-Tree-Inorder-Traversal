@@ -1,0 +1,59 @@
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+
+#include <stdlib.h>
+
+typedef struct {
+    int key;
+    int value;
+} HashEntry;
+
+int hash(int key, int size) {
+    return abs(key) % size;
+}
+
+int find(HashEntry* table, int size, int key) {
+    int index = hash(key, size);
+    while (table[index].key != 1000000000) {
+        if (table[index].key == key) return table[index].value;
+        index = (index + 1) % size;
+    }
+    return -1;
+}
+
+void insert(HashEntry* table, int size, int key, int value) {
+    int index = hash(key, size);
+    while (table[index].key != 1000000000) {
+        index = (index + 1) % size;
+    }
+    table[index].key = key;
+    table[index].value = value;
+}
+
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    int hashSize = numsSize * 2;
+    HashEntry* hashTable = (HashEntry*)malloc(sizeof(HashEntry) * hashSize);
+    for (int i = 0; i < hashSize; i++) {
+        hashTable[i].key = 1000000000;  // mark empty
+    }
+
+    int* result = (int*)malloc(sizeof(int) * 2);
+    for (int i = 0; i < numsSize; i++) {
+        int complement = target - nums[i];
+        int foundIndex = find(hashTable, hashSize, complement);
+        if (foundIndex != -1) {
+            result[0] = foundIndex;
+            result[1] = i;
+            *returnSize = 2;
+            free(hashTable);
+            return result;
+        }
+        insert(hashTable, hashSize, nums[i], i);
+    }
+
+    *returnSize = 0;
+    free(result);
+    free(hashTable);
+    return NULL;
+}
