@@ -1,0 +1,28 @@
+#include <string.h>
+
+int lengthOfLongestSubstring(char* s) {
+    int index[256];  // ASCII character set size
+    for (int i = 0; i < 256; i++) {
+        index[i] = -1;  // Initialize all indices as -1
+    }
+
+    int maxLen = 0;
+    int start = 0;
+
+    for (int end = 0; s[end] != '\0'; end++) {
+        char currentChar = s[end];
+
+        // If current character was seen and is inside the current window
+        if (index[(unsigned char)currentChar] >= start) {
+            start = index[(unsigned char)currentChar] + 1;
+        }
+
+        index[(unsigned char)currentChar] = end;
+        int windowLen = end - start + 1;
+
+        if (windowLen > maxLen)
+            maxLen = windowLen;
+    }
+
+    return maxLen;
+}
