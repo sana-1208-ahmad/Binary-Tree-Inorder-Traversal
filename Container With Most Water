@@ -1,0 +1,25 @@
+int maxArea(int* height, int heightSize) {
+    int left = 0;
+    int right = heightSize - 1;
+    int maxArea = 0;
+
+    while (left < right) {
+        // Width between the two lines
+        int width = right - left;
+        // Height is the minimum of the two lines
+        int h = (height[left] < height[right]) ? height[left] : height[right];
+        int area = width * h;
+
+        // Update max area if current is larger
+        if (area > maxArea)
+            maxArea = area;
+
+        // Move the pointer pointing to the shorter line
+        if (height[left] < height[right])
+            left++;
+        else
+            right--;
+    }
+
+    return maxArea;
+}
