@@ -1,0 +1,47 @@
+#include <stdlib.h>
+#include <string.h>
+
+// Mapping from digit to corresponding letters
+char* mapping[] = {
+    "",     // 0
+    "",     // 1
+    "abc",  // 2
+    "def",  // 3
+    "ghi",  // 4
+    "jkl",  // 5
+    "mno",  // 6
+    "pqrs", // 7
+    "tuv",  // 8
+    "wxyz"  // 9
+};
+
+// Helper function for backtracking
+void backtrack(char* digits, int index, char* current, char** result, int* returnSize) {
+    if (digits[index] == '\0') {
+        result[*returnSize] = strdup(current);
+        (*returnSize)++;
+        return;
+    }
+
+    char* letters = mapping[digits[index] - '0'];
+    for (int i = 0; letters[i] != '\0'; i++) {
+        current[index] = letters[i];
+        backtrack(digits, index + 1, current, result, returnSize);
+    }
+}
+
+char** letterCombinations(char* digits, int* returnSize) {
+    *returnSize = 0;
+
+    if (digits[0] == '\0') return NULL;
+
+    int maxCombinations = 256; // Max possible combinations for 4 digits
+    char** result = (char**)malloc(sizeof(char*) * maxCombinations);
+    char* current = (char*)malloc(sizeof(char) * (strlen(digits) + 1));
+    current[strlen(digits)] = '\0';
+
+    backtrack(digits, 0, current, result, returnSize);
+
+    free(current);
+    return result;
+}
