@@ -1,0 +1,37 @@
+#include <string.h>
+#include <stdlib.h>
+
+char* longestPalindrome(char* s) {
+    int start = 0, maxLen = 1;
+    int len = strlen(s);
+
+    if (len < 2) return s;
+
+    // Expand around center helper
+    for (int i = 0; i < len; i++) {
+        int l = i, r = i;  // Odd length
+        while (l >= 0 && r < len && s[l] == s[r]) {
+            if ((r - l + 1) > maxLen) {
+                start = l;
+                maxLen = r - l + 1;
+            }
+            l--; r++;
+        }
+
+        l = i; r = i + 1;  // Even length
+        while (l >= 0 && r < len && s[l] == s[r]) {
+            if ((r - l + 1) > maxLen) {
+                start = l;
+                maxLen = r - l + 1;
+            }
+            l--; r++;
+        }
+    }
+
+    // Create result substring
+    char* result = (char*)malloc(sizeof(char) * (maxLen + 1));
+    strncpy(result, s + start, maxLen);
+    result[maxLen] = '\0';
+
+    return result;
+}
